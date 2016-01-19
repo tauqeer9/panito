@@ -33,7 +33,6 @@ int length_of_genome;
 int number_of_samples;
 char ** sequence_names;
 
-
 int get_length_of_genome()
 {
     return length_of_genome;
@@ -47,6 +46,98 @@ int get_number_of_samples()
 char ** get_sequence_names()
 {
     return sequence_names;
+}
+
+void calculate_and_output_gwani(char filename[])
+{
+  check_input_file_and_calc_dimensions(filename);
+  print_header();
+  
+  int i;
+  int j;
+  for(i = 0; i < number_of_samples; i++)
+  {
+    printf("%s",sequence_names[i]);
+    double * similarity_percentage;
+    similarity_percentage = calloc(number_of_samples + 1 , sizeof(double));
+    calc_gwani_between_a_sample_and_everything_afterwards(filename, i, similarity_percentage);
+    
+    for(j = 0; j < number_of_samples; j++)
+    {
+      if(similarity_percentage[j] < 0)
+      {
+        printf("\t-");
+      }
+      else
+      {
+        printf("\t%f",similarity_percentage[j]);
+      }
+    }
+    printf("\n");
+    free(similarity_percentage);
+  }
+}
+
+void print_header()
+{
+  int i;
+  for(i = 0; i < number_of_samples; i++)
+  {
+    printf("\t%s",sequence_names[i]);
+  }
+  printf("\n");
+}
+
+void calc_gwani_between_a_sample_and_everything_afterwards(char filename[],int comparison_index, double * similarity_percentage)
+{
+  int current_index = 0;
+  int i;
+  int l;
+  int bases_in_common;
+  gzFile fp;
+  kseq_t *seq;
+
+  char * comparison_sequence;
+  comparison_sequence = calloc(length_of_genome + 1, sizeof(char));
+  
+  fp = gzopen(filename, "r");
+  seq = kseq_init(fp);
+  
+  while ((l = kseq_read(seq)) >= 0) {
+    if(current_index < comparison_index)
+    {
+      similarity_percentage[current_index] = -1;
+    }
+    else if(current_index == comparison_index)
+    {
+      similarity_percentage[current_index] = 100;
+      for(i = 0; i < length_of_genome; i++)
+      {
+          //standardise the input so that case doesnt matter and replace unknowns with single type
+          comparison_sequence[i] = toupper(seq->seq.s[i]);
+          if(is_unknown(comparison_sequence[i]))
+          {
+            comparison_sequence[i] = 'N';
+          }
+      }
+    }
+    else
+    {
+      bases_in_common = 0;
+      for(i = 0; i < length_of_genome; i++)
+      {
+        if(comparison_sequence[i] == toupper(seq->seq.s[i]) && ! is_unknown(seq->seq.s[i]))
+        {
+          bases_in_common++;
+        }
+      }
+      similarity_percentage[current_index] = (bases_in_common*100.0)/length_of_genome;
+    }
+    current_index++;
+  }
+  
+  kseq_destroy(seq);
+  gzclose(fp);
 }
 
 void check_input_file_and_calc_dimensions(char filename[])
@@ -90,6 +181,11 @@ void check_input_file_and_calc_dimensions(char filename[])
   gzclose(fp);
   return;
 }
+
+//void cleanup_memory
+//{
+//  free(sequence_names);
+//}
 
 int is_unknown(char base)
 {

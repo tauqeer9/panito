@@ -27,6 +27,9 @@ int get_length_of_genome();
 int get_number_of_samples();
 char ** get_sequence_names();
 void check_input_file_and_calc_dimensions(char filename[]);
+void calculate_and_output_gwani(char filename[]);
+void print_header();
+void calc_gwani_between_a_sample_and_everything_afterwards(char filename[], int comparison_index, double * similarity_percentage);
 
 #define DEFAULT_NUM_SAMPLES 65536
 #endif

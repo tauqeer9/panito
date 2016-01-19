@@ -31,9 +31,8 @@
 
 static void print_usage()
 {
-	printf("Usage: panito [-hV] [-o output_filename] <file>\n");
+	printf("Usage: panito [-hV] <file>\n");
 	printf("This program calculates the genome wide ANI for a multiFASTA alignment.\n");
-	printf(" -o		specify an output filename\n");
 	printf(" -h		this help message\n");
 	printf(" -V		print version and exit\n");
 	printf(" <file>		input alignment file which can optionally be gzipped\n");
@@ -71,8 +70,7 @@ int main (int argc, char **argv) {
   if(optind < argc)
   {
     strncpy(multi_fasta_filename, argv[optind], FILENAME_MAX); 
-    check_input_file_and_calc_dimensions(multi_fasta_filename);
-    printf("worked");
+    calculate_and_output_gwani(multi_fasta_filename);
   }
   else
   {
