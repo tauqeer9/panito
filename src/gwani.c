@@ -48,6 +48,123 @@ char ** get_sequence_names()
     return sequence_names;
 }
 
+void fast_calculate_gwani(char filename[])
+{
+  check_input_file_and_calc_dimensions(filename);
+  print_header();
+  
+  // initialise space to store entire genome
+  int i;
+  int j;
+  char ** comparison_sequence;
+  comparison_sequence = calloc(get_number_of_samples() + 1, sizeof(char *));
+  for(i=0; i < get_number_of_samples(); i++)
+  {
+    comparison_sequence[i] = calloc(get_length_of_genome() + 1, sizeof(char));
+  }
+  
+  // Store all sequences in a giant array - eek
+  gzFile fp;
+  kseq_t *seq;
+  int l;
+  fp = gzopen(filename, "r");
+  seq = kseq_init(fp);
+  i =0;
+  while ((l = kseq_read(seq)) >= 0) {
+    memcpy(comparison_sequence[i], seq->seq.s, strlen(seq->seq.s)+1);
+    i++;
+  }
+  
+  for(j = 0; j< number_of_samples; j++)
+  {
+    for(i = 0; i < length_of_genome; i++)
+    {
+      //standardise the input so that case doesnt matter and replace unknowns with single type
+      comparison_sequence[j][i] = toupper(comparison_sequence[j][i]);
+      if(is_unknown(comparison_sequence[j][i]))
+      {
+        comparison_sequence[j][i] = 'N';
+      }
+    }
+  }
+
+  for(i = 0; i < number_of_samples; i++)
+  {
+    printf("%s",sequence_names[i]);
+    double * similarity_percentage;
+    similarity_percentage = calloc(number_of_samples + 1 , sizeof(double));
+
+    calc_gwani_between_a_sample_and_everything_afterwards_memory(comparison_sequence, i ,similarity_percentage);
+    
+    for(j = 0; j < number_of_samples; j++)
+    {
+      if(similarity_percentage[j] < 0)
+      {
+        printf("\t-");
+      }
+      else
+      {
+        printf("\t%f",similarity_percentage[j]);
+      }
+    }
+    printf("\n");
+    free(similarity_percentage);
+  }
+  
+}
+  
+
+
+void calc_gwani_between_a_sample_and_everything_afterwards_memory(char ** comparison_sequence,int comparison_index, double * similarity_percentage)
+{
+  int current_index = 0;
+  int i;
+  int l;
+  int j;
+  int bases_in_common;
+  int length_without_gaps;
+
+  for(j = 0; j< number_of_samples; j++)
+  {
+    if(current_index < comparison_index)
+    {
+      similarity_percentage[current_index] = -1;
+    }
+    else if(current_index == comparison_index)
+    {
+      similarity_percentage[current_index] = 100;
+    }
+    else
+    {
+      bases_in_common = 0;
+      length_without_gaps =length_of_genome;
+      for(i = 0; i < length_of_genome; i++)
+      {
+        
+        if(comparison_sequence[comparison_index][i] == 'N' || comparison_sequence[j][i] == 'N' )
+        {
+          length_without_gaps--;
+        } 
+        else if(comparison_sequence[comparison_index][i] == comparison_sequence[j][i] )
+        {
+          bases_in_common++;
+        }
+      }
+      if(length_without_gaps > 0)
+      {
+          similarity_percentage[current_index] = (bases_in_common*100.0)/length_without_gaps;
+      } 
+      else
+      {
+        similarity_percentage[current_index] = 0;
+      }
+      
+    }
+    current_index++;
+  }
+}
+
+
 void calculate_and_output_gwani(char filename[])
 {
   check_input_file_and_calc_dimensions(filename);
@@ -94,6 +211,7 @@ void calc_gwani_between_a_sample_and_everything_afterwards(char filename[],int c
   int i;
   int l;
   int bases_in_common;
+  int length_without_gaps;
   gzFile fp;
   kseq_t *seq;
 
@@ -124,14 +242,28 @@ void calc_gwani_between_a_sample_and_everything_afterwards(char filename[],int c
     else
     {
       bases_in_common = 0;
+      length_without_gaps =length_of_genome;
       for(i = 0; i < length_of_genome; i++)
       {
-        if(comparison_sequence[i] == toupper(seq->seq.s[i]) && ! is_unknown(seq->seq.s[i]))
+        
+        if(comparison_sequence[i] == 'N' || is_unknown(seq->seq.s[i]) )
+        {
+          length_without_gaps--;
+        } 
+        else if(comparison_sequence[i] == toupper(seq->seq.s[i]) && ! is_unknown(seq->seq.s[i]))
         {
           bases_in_common++;
         }
       }
-      similarity_percentage[current_index] = (bases_in_common*100.0)/length_of_genome;
+      if(length_without_gaps > 0)
+      {
+          similarity_percentage[current_index] = (bases_in_common*100.0)/length_without_gaps;
+      } 
+      else
+      {
+        similarity_percentage[current_index] = 0;
+      }
+      
     }
     current_index++;
   }

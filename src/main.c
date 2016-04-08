@@ -70,7 +70,8 @@ int main (int argc, char **argv) {
   if(optind < argc)
   {
     strncpy(multi_fasta_filename, argv[optind], FILENAME_MAX); 
-    calculate_and_output_gwani(multi_fasta_filename);
+    fast_calculate_gwani(multi_fasta_filename);
+    //calculate_and_output_gwani(multi_fasta_filename);
   }
   else
   {
