@@ -42,5 +42,11 @@ make
 sudo make install
 ```
 
+## OSX/Linux - Homebrew
+```
+brew tap tseemann/bioinformatics-linux
+brew install panito
+```
+
 #Etymology
 pANIto has 'ani' in the middle.  In Spanish it means babylon.
