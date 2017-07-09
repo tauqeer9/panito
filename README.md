@@ -1,7 +1,7 @@
-#pANIto
+# pANIto
 Given a multi-FASTA alignment, output the genome wide average nucleotide identity (gwANI) for each sample against all other samples. A matrix containing the percentages is outputted. This software loads the whole file into memory.
 
-#Usage
+# Usage
 ```
    $ panito
    Usage: panito [-hV] <file>
@@ -11,7 +11,7 @@ Given a multi-FASTA alignment, output the genome wide average nucleotide identit
     <file>		input alignment file which can optionally be gzipped
 ```
 
-##Input format
+## Input format
 The input file must be a multi-FASTA file, where all sequences are the same length:
 
 ```
@@ -31,9 +31,9 @@ sample2	-			100.000000	90.000000
 sample3	-			-			100.000000
 ```
 
-#Installation
-##OSX/Linux - from source
-Ensure you have a standard development environmentinstalled(e.g. gcc, automake, autoconf, libtool). Download the software from GitHub and unzip.
+# Installation
+## OSX/Linux - from source
+Ensure you have a standard development environmentinstalled (e.g. gcc, automake, autoconf, libtool). Download the software from GitHub and unzip.
 
 ```
 autoreconf -i -f
@@ -48,5 +48,11 @@ brew tap tseemann/bioinformatics-linux
 brew install panito
 ```
 
-#Etymology
+# Etymology
 pANIto has 'ani' in the middle.  In Spanish it means babylon.
+
+# Issues
+Submit questions to the [Issues page](https://github.com/sanger-pathogens/panito/issues)
+
+# License
+[GPLv3](https://raw.githubusercontent.com/sanger-pathogens/panito/master/LICENSE)
